@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator — random</title>
+  <link rel="stylesheet" href="../../shared/style.css">
+  <style>
+    .password-display {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-6);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      word-break: break-all;
+      line-height: 1.8;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1px;
+    }
+
+    .ch-lower   { color: var(--color-text); }
+    .ch-upper   { color: var(--color-accent); font-weight: 700; }
+    .ch-digit   { color: var(--color-accent-2); font-weight: 700; }
+    .ch-symbol  { color: var(--color-success); font-weight: 700; }
+
+    /* Options card */
+    .options-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .length-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .length-row label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      width: 56px;
+      flex-shrink: 0;
+    }
+
+    .length-row input[type="range"] { flex: 1; }
+
+    .length-row input[type="number"] {
+      width: 64px;
+      text-align: center;
+    }
+
+    .checkboxes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2) var(--space-4);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Strength meter */
+    .strength-wrap {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .strength-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: var(--space-2);
+    }
+
+    .strength-seg {
+      flex: 1;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-2);
+      transition: background 0.3s;
+    }
+
+    .strength-label {
+      font-size: var(--font-size-xs);
+      text-align: right;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    /* Action buttons */
+    .action-row {
+      display: flex;
+      gap: var(--space-3);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .action-row .btn {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="password" data-mode="ui"></div>
+  <script src="../../shared/nav.js"></script>
+
+  <main class="page" style="gap:var(--space-5);">
+
+    <div class="tool-header animate-reveal">
+      <h1>🔑 Password Generator</h1>
+    </div>
+
+    <!-- Password display -->
+    <div class="password-display animate-reveal" id="passwordDisplay" aria-live="polite">—</div>
+
+    <!-- Strength meter -->
+    <div class="strength-wrap animate-reveal">
+      <div class="strength-bar">
+        <div class="strength-seg" id="seg0"></div>
+        <div class="strength-seg" id="seg1"></div>
+        <div class="strength-seg" id="seg2"></div>
+        <div class="strength-seg" id="seg3"></div>
+        <div class="strength-seg" id="seg4"></div>
+      </div>
+      <div class="strength-label" id="strengthLabel" style="color:var(--color-text-muted)">—</div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="action-row animate-reveal">
+      <button id="genBtn"  class="btn btn-primary">Generate</button>
+      <button id="copyBtn" class="btn btn-ghost">Copy</button>
+    </div>
+
+    <!-- Options -->
+    <div class="options-card animate-reveal">
+      <!-- Length -->
+      <div class="length-row">
+        <label for="lengthSlider">Length</label>
+        <input type="range" id="lengthSlider" min="8" max="64" value="16">
+        <input type="number" id="lengthNum" min="8" max="64" value="16">
+      </div>
+
+      <!-- Character sets -->
+      <div class="checkboxes">
+        <label class="checkbox-row">
+          <input type="checkbox" id="chkUpper"   checked> Uppercase
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="chkLower"   checked> Lowercase
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="chkDigits"  checked> Numbers
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="chkSymbols" checked> Symbols
+        </label>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const LOWER   = 'abcdefghijkmnopqrstuvwxyz';
+    const UPPER   = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const DIGITS  = '23456789';
+    const SYMBOLS = '!@#$%^&*-_=+?';
+
+    const displayEl  = document.getElementById('passwordDisplay');
+    const lengthSlider = document.getElementById('lengthSlider');
+    const lengthNum    = document.getElementById('lengthNum');
+    const chkUpper    = document.getElementById('chkUpper');
+    const chkLower    = document.getElementById('chkLower');
+    const chkDigits   = document.getElementById('chkDigits');
+    const chkSymbols  = document.getElementById('chkSymbols');
+    const genBtn      = document.getElementById('genBtn');
+    const copyBtn     = document.getElementById('copyBtn');
+    const strengthLabel = document.getElementById('strengthLabel');
+    const segs = [0,1,2,3,4].map(i => document.getElementById('seg'+i));
+
+    let currentPassword = '';
+    let debounceTimer;
+
+    function randomIndex(max) {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return arr[0] % max;
+    }
+
+    function getPool() {
+      let pool = '';
+      // Always include lowercase as base to avoid empty pool
+      if (chkLower.checked)   pool += LOWER;
+      if (chkUpper.checked)   pool += UPPER;
+      if (chkDigits.checked)  pool += DIGITS;
+      if (chkSymbols.checked) pool += SYMBOLS;
+      return pool || LOWER; // fallback
+    }
+
+    function generate() {
+      const len  = parseInt(lengthSlider.value, 10);
+      const pool = getPool();
+      const chars = Array.from({ length: len }, () => pool[randomIndex(pool.length)]);
+
+      // Fisher-Yates shuffle
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = randomIndex(i + 1);
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+
+      currentPassword = chars.join('');
+      renderPassword(chars);
+      renderStrength(len);
+    }
+
+    function charClass(c) {
+      if (LOWER.includes(c))   return 'ch-lower';
+      if (UPPER.includes(c))   return 'ch-upper';
+      if (DIGITS.includes(c))  return 'ch-digit';
+      if (SYMBOLS.includes(c)) return 'ch-symbol';
+      return 'ch-lower';
+    }
+
+    function renderPassword(chars) {
+      displayEl.classList.remove('animate-reveal');
+      void displayEl.offsetWidth;
+      displayEl.classList.add('animate-reveal');
+
+      const frag = document.createDocumentFragment();
+      for (const c of chars) {
+        const span = document.createElement('span');
+        span.className = charClass(c);
+        span.textContent = c;
+        frag.appendChild(span);
+      }
+      displayEl.innerHTML = '';
+      displayEl.appendChild(frag);
+    }
+
+    function renderStrength(len) {
+      let typeCount = 0;
+      if (chkUpper.checked)   typeCount++;
+      if (chkLower.checked)   typeCount++;
+      if (chkDigits.checked)  typeCount++;
+      if (chkSymbols.checked) typeCount++;
+
+      let level;
+      if (len < 8)                              level = 0; // Weak
+      else if (len < 12)                        level = 1; // Fair
+      else if (len < 16 || typeCount < 2)       level = 2; // Good
+      else if (len < 20 || typeCount < 3)       level = 3; // Strong
+      else                                      level = 4; // Excellent
+
+      const colors = [
+        'var(--color-danger)',
+        'var(--color-warning)',
+        '#a8f76a',
+        'var(--color-success)',
+        '#6af7e0',
+      ];
+      const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Excellent'];
+
+      segs.forEach((s, i) => {
+        s.style.background = i <= level ? colors[level] : 'var(--color-surface-2)';
+      });
+      strengthLabel.textContent = labels[level];
+      strengthLabel.style.color = colors[level];
+    }
+
+    // Sync length slider & number input
+    lengthSlider.addEventListener('input', () => {
+      lengthNum.value = lengthSlider.value;
+      scheduleGenerate();
+    });
+    lengthNum.addEventListener('change', () => {
+      const v = Math.min(64, Math.max(8, parseInt(lengthNum.value, 10) || 16));
+      lengthNum.value   = v;
+      lengthSlider.value = v;
+      scheduleGenerate();
+    });
+
+    // Ensure at least one charset
+    [chkUpper, chkLower, chkDigits, chkSymbols].forEach(chk => {
+      chk.addEventListener('change', () => {
+        const any = chkUpper.checked || chkLower.checked || chkDigits.checked || chkSymbols.checked;
+        if (!any) chk.checked = true; // prevent unchecking all
+        scheduleGenerate();
+      });
+    });
+
+    function scheduleGenerate() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(generate, 200);
+    }
+
+    genBtn.addEventListener('click', generate);
+
+    copyBtn.addEventListener('click', async () => {
+      if (!currentPassword) return;
+      try {
+        await navigator.clipboard.writeText(currentPassword);
+        copyBtn.textContent = 'Copied!';
+        copyBtn.style.borderColor = 'var(--color-success)';
+        copyBtn.style.color = 'var(--color-success)';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.style.borderColor = '';
+          copyBtn.style.color = '';
+        }, 1500);
+      } catch {
+        // Fallback: select the text
+        const tmp = document.createElement('textarea');
+        tmp.value = currentPassword;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+      }
+    });
+
+    generate();
+  </script>
+
+</body>
+</html>

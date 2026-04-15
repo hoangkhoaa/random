@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>card — random</title>
+  <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="card" data-mode="text"></div>
+  <script src="../shared/nav.js"></script>
+
+  <main class="page">
+    <div class="tool-header animate-reveal">
+      <h1>🃏 Card Draw</h1>
+      <p>52-card deck — random</p>
+    </div>
+
+    <div id="result" class="result-display animate-reveal"
+         style="font-size:clamp(1.8rem,6vw,3.5rem);" aria-live="polite">—</div>
+
+    <div style="display:flex;gap:var(--space-3);">
+      <button class="btn btn-primary btn-large" onclick="draw()">Draw again</button>
+      <a href="ui/index.html" class="btn btn-ghost btn-large">Visual →</a>
+    </div>
+  </main>
+
+  <script>
+    const RANKS = ['Ace','2','3','4','5','6','7','8','9','10','Jack','Queen','King'];
+    const SUITS = ['Spades','Hearts','Diamonds','Clubs'];
+    const RED   = new Set(['Hearts','Diamonds']);
+
+    function draw() {
+      const rank = RANKS[Math.floor(Math.random() * RANKS.length)];
+      const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+      const el = document.getElementById('result');
+      el.classList.remove('animate-reveal');
+      void el.offsetWidth;
+      el.classList.add('animate-reveal');
+      el.style.color = RED.has(suit)
+        ? 'var(--color-danger)'
+        : 'var(--color-accent)';
+      el.textContent = `${rank} of ${suit}`;
+    }
+    draw();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dice Roller — random</title>
+  <link rel="stylesheet" href="../../shared/style.css">
+  <style>
+    /* ---- Dice faces using CSS Grid pips ---- */
+    .dice-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      min-height: 120px;
+      padding: var(--space-4) 0;
+    }
+
+    .dice {
+      width: 100px;
+      height: 100px;
+      transition: transform 0.15s;
+    }
+
+    @keyframes dice-shake {
+      0%   { transform: rotate(0deg) scale(1); }
+      15%  { transform: rotate(-18deg) scale(1.1); }
+      30%  { transform: rotate(14deg) scale(1.05); }
+      45%  { transform: rotate(-11deg) scale(1.08); }
+      60%  { transform: rotate(9deg)  scale(1.04); }
+      75%  { transform: rotate(-5deg) scale(1.05); }
+      90%  { transform: rotate(3deg)  scale(1.02); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    .dice.rolling {
+      animation: dice-shake 0.65s ease-in-out;
+    }
+
+    .face {
+      width: 100%;
+      height: 100%;
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+      display: grid;
+      padding: 14px;
+      box-sizing: border-box;
+    }
+
+    .pip {
+      width: 14px;
+      height: 14px;
+      background: var(--color-accent);
+      border-radius: 50%;
+      align-self: center;
+      justify-self: center;
+      box-shadow: 0 0 6px var(--color-accent-glow);
+    }
+
+    /* Face layouts */
+    .face-1 { grid-template: "." 1fr / 1fr; }
+    .face-1 .pip { grid-area: 1 / 1; }
+
+    .face-2 { grid-template: repeat(2, 1fr) / repeat(2, 1fr); }
+    .face-2 .pip:nth-child(1) { grid-row: 1; grid-column: 2; }
+    .face-2 .pip:nth-child(2) { grid-row: 2; grid-column: 1; }
+
+    .face-3 { grid-template: repeat(3, 1fr) / repeat(3, 1fr); }
+    .face-3 .pip:nth-child(1) { grid-row: 1; grid-column: 3; }
+    .face-3 .pip:nth-child(2) { grid-row: 2; grid-column: 2; }
+    .face-3 .pip:nth-child(3) { grid-row: 3; grid-column: 1; }
+
+    .face-4 { grid-template: repeat(2, 1fr) / repeat(2, 1fr); }
+    /* pips fill all 4 cells naturally */
+
+    .face-5 { grid-template: repeat(3, 1fr) / repeat(3, 1fr); }
+    .face-5 .pip:nth-child(1) { grid-row: 1; grid-column: 1; }
+    .face-5 .pip:nth-child(2) { grid-row: 1; grid-column: 3; }
+    .face-5 .pip:nth-child(3) { grid-row: 2; grid-column: 2; }
+    .face-5 .pip:nth-child(4) { grid-row: 3; grid-column: 1; }
+    .face-5 .pip:nth-child(5) { grid-row: 3; grid-column: 3; }
+
+    .face-6 { grid-template: repeat(3, 1fr) / repeat(2, 1fr); }
+    /* pips fill 6 cells naturally */
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+
+    .control-group select {
+      font-size: var(--font-size-sm);
+    }
+
+    /* Total */
+    .total-display {
+      font-size: var(--font-size-2xl);
+      font-weight: 900;
+      color: var(--color-accent);
+      text-align: center;
+      letter-spacing: -0.02em;
+      min-height: 2.5rem;
+    }
+
+    /* History */
+    .history-section {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .history-title {
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+
+    /* Keyboard hint */
+    .kbd-hint {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+
+    kbd {
+      display: inline-block;
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: inherit;
+      font-size: inherit;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="dice" data-mode="ui"></div>
+  <script src="../../shared/nav.js"></script>
+
+  <main class="page" style="gap:var(--space-6);">
+
+    <div class="tool-header animate-reveal">
+      <h1>🎲 Dice Roller</h1>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls animate-reveal">
+      <div class="control-group">
+        <label for="diceCount">Dice:</label>
+        <select id="diceCount">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+      <button id="rollBtn" class="btn btn-primary btn-large">Roll</button>
+    </div>
+
+    <!-- Dice display -->
+    <div class="dice-area animate-reveal" id="diceArea"></div>
+
+    <!-- Total -->
+    <div class="total-display" id="totalDisplay" aria-live="polite"></div>
+
+    <!-- History -->
+    <div class="history-section animate-reveal">
+      <div class="history-title">Last rolls</div>
+      <ul class="history-list" id="historyList"></ul>
+    </div>
+
+    <p class="kbd-hint animate-reveal">Press <kbd>Space</kbd> to roll</p>
+
+  </main>
+
+  <script>
+    let diceCount = 2;
+    let isRolling = false;
+    const history = [];
+
+    const diceArea    = document.getElementById('diceArea');
+    const rollBtn     = document.getElementById('rollBtn');
+    const totalEl     = document.getElementById('totalDisplay');
+    const historyList = document.getElementById('historyList');
+    const diceCountSel = document.getElementById('diceCount');
+
+    function renderFace(el, value) {
+      const pips = Array(value).fill('<span class="pip"></span>').join('');
+      el.innerHTML = `<div class="face face-${value}">${pips}</div>`;
+    }
+
+    function initDice(n) {
+      diceArea.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const el = document.createElement('div');
+        el.className = 'dice';
+        el.id = `dice-${i}`;
+        renderFace(el, 1);
+        diceArea.appendChild(el);
+      }
+    }
+
+    function roll() {
+      if (isRolling) return;
+      isRolling = true;
+      rollBtn.disabled = true;
+
+      const diceEls = Array.from(diceArea.querySelectorAll('.dice'));
+      const finalValues = diceEls.map(() => Math.floor(Math.random() * 6) + 1);
+
+      diceEls.forEach(el => el.classList.add('rolling'));
+
+      const interval = setInterval(() => {
+        diceEls.forEach(el => renderFace(el, Math.floor(Math.random() * 6) + 1));
+      }, 80);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        diceEls.forEach((el, i) => {
+          el.classList.remove('rolling');
+          renderFace(el, finalValues[i]);
+        });
+
+        const sum = finalValues.reduce((a, b) => a + b, 0);
+        totalEl.textContent = diceEls.length > 1
+          ? `Total: ${sum}`
+          : `Rolled: ${sum}`;
+
+        addHistory(finalValues, sum);
+        isRolling = false;
+        rollBtn.disabled = false;
+      }, 650);
+    }
+
+    function addHistory(values, sum) {
+      history.unshift({ values, sum });
+      if (history.length > 8) history.pop();
+
+      historyList.innerHTML = history
+        .map(e => `<li>[${e.values.join(', ')}]${e.values.length > 1 ? ' = ' + e.sum : ''}</li>`)
+        .join('');
+    }
+
+    diceCountSel.addEventListener('change', () => {
+      diceCount = parseInt(diceCountSel.value, 10);
+      initDice(diceCount);
+      totalEl.textContent = '';
+    });
+
+    rollBtn.addEventListener('click', roll);
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && !e.target.matches('select, button')) {
+        e.preventDefault();
+        roll();
+      }
+    });
+
+    initDice(diceCount);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>coin — random</title>
+  <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="coin" data-mode="text"></div>
+  <script src="../shared/nav.js"></script>
+
+  <main class="page">
+    <div class="tool-header animate-reveal">
+      <h1>🪙 Coin Flip</h1>
+      <p>50/50 — random</p>
+    </div>
+
+    <div id="result" class="result-display animate-reveal" aria-live="polite">—</div>
+
+    <div style="display:flex;gap:var(--space-3);">
+      <button class="btn btn-primary btn-large" onclick="flip()">Flip again</button>
+      <a href="ui/index.html" class="btn btn-ghost btn-large">Visual →</a>
+    </div>
+  </main>
+
+  <script>
+    function flip() {
+      const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+      const el = document.getElementById('result');
+      el.classList.remove('animate-reveal');
+      void el.offsetWidth;
+      el.classList.add('animate-reveal');
+      el.textContent = result;
+    }
+    flip();
+  </script>
+
+</body>
+</html>

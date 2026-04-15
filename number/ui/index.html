@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Number — random</title>
+  <link rel="stylesheet" href="../../shared/style.css">
+  <style>
+    .big-number {
+      font-size: var(--font-size-hero);
+      font-weight: 900;
+      color: var(--color-accent);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      text-align: center;
+      min-height: 1em;
+      text-shadow: 0 0 40px var(--color-accent-glow);
+    }
+
+    .range-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .range-row label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    .range-row input[type="range"] {
+      flex: 1;
+    }
+
+    .range-row input[type="number"] {
+      width: 72px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .history-section {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .history-title {
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="number" data-mode="ui"></div>
+  <script src="../../shared/nav.js"></script>
+
+  <main class="page" style="gap:var(--space-6);">
+
+    <div class="tool-header animate-reveal">
+      <h1>🔢 Random Number</h1>
+    </div>
+
+    <!-- Big result -->
+    <div class="big-number animate-reveal" id="bigNumber" aria-live="polite">—</div>
+
+    <!-- Controls -->
+    <div class="range-card animate-reveal">
+      <div class="range-row">
+        <label for="minSlider">Min</label>
+        <input type="range" id="minSlider" min="0" max="999" value="1">
+        <input type="number" id="minNum" min="0" max="999" value="1">
+      </div>
+      <div class="range-row">
+        <label for="maxSlider">Max</label>
+        <input type="range" id="maxSlider" min="1" max="1000" value="100">
+        <input type="number" id="maxNum" min="1" max="1000" value="100">
+      </div>
+      <button id="genBtn" class="btn btn-primary" style="width:100%;margin-top:var(--space-2);">Generate</button>
+    </div>
+
+    <!-- History -->
+    <div class="history-section animate-reveal">
+      <div class="history-title">History</div>
+      <ul class="history-list" id="historyList"></ul>
+    </div>
+
+  </main>
+
+  <script>
+    let minVal = 1, maxVal = 100;
+    const history = [];
+    let rafId = null;
+
+    const bigNumber  = document.getElementById('bigNumber');
+    const minSlider  = document.getElementById('minSlider');
+    const maxSlider  = document.getElementById('maxSlider');
+    const minNum     = document.getElementById('minNum');
+    const maxNum     = document.getElementById('maxNum');
+    const genBtn     = document.getElementById('genBtn');
+    const histList   = document.getElementById('historyList');
+
+    function syncMin(v) {
+      minVal = Math.min(parseInt(v, 10) || 0, maxVal - 1);
+      minSlider.value = minVal;
+      minNum.value    = minVal;
+    }
+
+    function syncMax(v) {
+      maxVal = Math.max(parseInt(v, 10) || 1, minVal + 1);
+      maxSlider.value = maxVal;
+      maxNum.value    = maxVal;
+    }
+
+    minSlider.addEventListener('input', () => syncMin(minSlider.value));
+    minNum.addEventListener('change',   () => syncMin(minNum.value));
+    maxSlider.addEventListener('input', () => syncMax(maxSlider.value));
+    maxNum.addEventListener('change',   () => syncMax(maxNum.value));
+
+    function animateTo(target, duration) {
+      if (rafId) cancelAnimationFrame(rafId);
+      const start  = parseInt(bigNumber.textContent) || minVal;
+      const startT = performance.now();
+
+      function tick(now) {
+        const t = Math.min((now - startT) / duration, 1);
+        // ease-out cubic
+        const ease = 1 - Math.pow(1 - t, 3);
+        const cur  = Math.round(start + (target - start) * ease);
+        bigNumber.textContent = cur;
+        if (t < 1) rafId = requestAnimationFrame(tick);
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function generate() {
+      const n = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+
+      bigNumber.classList.remove('animate-reveal');
+      void bigNumber.offsetWidth;
+      bigNumber.classList.add('animate-reveal');
+      animateTo(n, 400);
+
+      history.unshift(n);
+      if (history.length > 10) history.pop();
+      histList.innerHTML = history.map(v => `<li>${v}</li>`).join('');
+    }
+
+    genBtn.addEventListener('click', generate);
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && !e.target.matches('input, button')) {
+        e.preventDefault();
+        generate();
+      }
+    });
+
+    generate();
+  </script>
+
+</body>
+</html>

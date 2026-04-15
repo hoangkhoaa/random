@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>number — random</title>
+  <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="number" data-mode="text"></div>
+  <script src="../shared/nav.js"></script>
+
+  <main class="page">
+    <div class="tool-header animate-reveal">
+      <h1>🔢 Random Number</h1>
+      <p id="range-label">1 – 100</p>
+    </div>
+
+    <div id="result" class="result-display animate-reveal" aria-live="polite">—</div>
+
+    <div style="display:flex;gap:var(--space-3);">
+      <button class="btn btn-primary btn-large" onclick="generate()">Generate</button>
+      <a href="ui/index.html" class="btn btn-ghost btn-large">Visual →</a>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const min = parseInt(params.get('min') ?? '1', 10);
+    const max = parseInt(params.get('max') ?? '100', 10);
+
+    document.getElementById('range-label').textContent = `${min} – ${max}`;
+
+    function generate() {
+      const n = Math.floor(Math.random() * (max - min + 1)) + min;
+      const el = document.getElementById('result');
+      el.classList.remove('animate-reveal');
+      void el.offsetWidth;
+      el.classList.add('animate-reveal');
+      el.textContent = n;
+    }
+    generate();
+  </script>
+
+</body>
+</html>

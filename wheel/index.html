@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>wheel — random</title>
+  <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="wheel" data-mode="text"></div>
+  <script src="../shared/nav.js"></script>
+
+  <main class="page">
+    <div class="tool-header animate-reveal">
+      <h1>🎡 Wheel</h1>
+      <p id="items-label">—</p>
+    </div>
+
+    <div id="result" class="result-display animate-reveal"
+         style="font-size:clamp(2rem,7vw,4rem);" aria-live="polite">—</div>
+
+    <div style="display:flex;gap:var(--space-3);">
+      <button class="btn btn-primary btn-large" onclick="pick()">Spin again</button>
+      <a href="ui/index.html" class="btn btn-ghost btn-large">Visual →</a>
+    </div>
+
+    <p style="color:var(--color-text-muted);font-size:var(--font-size-sm);text-align:center;max-width:320px;">
+      Add <code style="background:var(--color-surface-2);padding:1px 6px;border-radius:4px;">?items=A,B,C</code> to the URL to customise options.
+    </p>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const raw = params.get('items');
+    const items = raw
+      ? raw.split(',').map(s => s.trim()).filter(Boolean)
+      : ['Option A', 'Option B', 'Option C'];
+
+    document.getElementById('items-label').textContent =
+      'from: ' + items.join(', ');
+
+    function pick() {
+      const choice = items[Math.floor(Math.random() * items.length)];
+      const el = document.getElementById('result');
+      el.classList.remove('animate-reveal');
+      void el.offsetWidth;
+      el.classList.add('animate-reveal');
+      el.textContent = choice;
+    }
+    pick();
+  </script>
+
+</body>
+</html>

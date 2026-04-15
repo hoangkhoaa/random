@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dice — random</title>
+  <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="dice" data-mode="text"></div>
+  <script src="../shared/nav.js"></script>
+
+  <main class="page">
+    <div class="tool-header animate-reveal">
+      <h1>🎲 Dice Roll</h1>
+      <p>1d6 — random</p>
+    </div>
+
+    <div id="result" class="result-display animate-reveal" aria-live="polite">—</div>
+
+    <div style="display:flex;gap:var(--space-3);">
+      <button class="btn btn-primary btn-large" onclick="roll()">Roll again</button>
+      <a href="ui/index.html" class="btn btn-ghost btn-large">Visual →</a>
+    </div>
+  </main>
+
+  <script>
+    function roll() {
+      const n = Math.floor(Math.random() * 6) + 1;
+      const el = document.getElementById('result');
+      el.classList.remove('animate-reveal');
+      void el.offsetWidth; // force reflow to restart animation
+      el.classList.add('animate-reveal');
+      el.textContent = n;
+    }
+    roll();
+  </script>
+
+</body>
+</html>

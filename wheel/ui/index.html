@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel Spin — random</title>
+  <link rel="stylesheet" href="../../shared/style.css">
+  <style>
+    .wheel-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    canvas {
+      display: block;
+      border-radius: 50%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    /* Pointer arrow at the top */
+    .pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 24px solid var(--color-accent);
+      filter: drop-shadow(0 2px 6px var(--color-accent-glow));
+      z-index: 10;
+    }
+
+    .result-badge {
+      font-size: var(--font-size-xl);
+      font-weight: 900;
+      color: var(--color-accent);
+      text-align: center;
+      min-height: 2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .items-editor {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .items-editor label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+
+    .items-editor textarea {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: var(--space-3);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="nav-placeholder" data-tool="wheel" data-mode="ui"></div>
+  <script src="../../shared/nav.js"></script>
+
+  <main class="page" style="gap:var(--space-6);">
+
+    <div class="tool-header animate-reveal">
+      <h1>🎡 Wheel Spin</h1>
+    </div>
+
+    <!-- Wheel -->
+    <div class="wheel-wrap animate-reveal">
+      <div class="pointer"></div>
+      <canvas id="wheelCanvas"></canvas>
+    </div>
+
+    <!-- Result -->
+    <div class="result-badge animate-reveal" id="resultBadge" aria-live="polite">—</div>
+
+    <!-- Spin button -->
+    <button id="spinBtn" class="btn btn-primary btn-large animate-reveal">Spin!</button>
+
+    <!-- Editor -->
+    <div class="items-editor animate-reveal">
+      <label for="itemsTextarea">Options (one per line):</label>
+      <textarea id="itemsTextarea">Pizza
+Tacos
+Sushi
+Burgers
+Salad
+Ramen</textarea>
+      <div class="editor-actions">
+        <button id="updateBtn" class="btn btn-ghost" style="flex:1;">Update Wheel</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const COLORS = [
+      '#7c6af7','#f7a26a','#6af7a2','#f76a6a','#f7e76a','#6ac4f7',
+      '#c46af7','#f76ab4','#6af7d4','#f7b46a',
+    ];
+
+    const canvas   = document.getElementById('wheelCanvas');
+    const ctx      = canvas.getContext('2d');
+    const spinBtn  = document.getElementById('spinBtn');
+    const resultEl = document.getElementById('resultBadge');
+    const textarea = document.getElementById('itemsTextarea');
+    const updateBtn = document.getElementById('updateBtn');
+
+    let items = [];
+    let currentAngle = 0; // angle at top (in radians), offset for visual rotation
+    let isSpinning = false;
+    let animStart, animDuration, startAngle, targetAngle;
+
+    function getItems() {
+      return textarea.value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function drawWheel() {
+      const size = Math.min(380, window.innerWidth - 48);
+      canvas.width  = size;
+      canvas.height = size;
+
+      const cx = size / 2;
+      const cy = size / 2;
+      const r  = size / 2;
+      const n  = items.length;
+
+      if (n < 2) {
+        ctx.fillStyle = '#252535';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = '#7a7a9a';
+        ctx.font = `${size * 0.05}px Inter, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Need at least 2 options', cx, cy);
+        return;
+      }
+
+      const arc = (2 * Math.PI) / n;
+
+      for (let i = 0; i < n; i++) {
+        const startA = currentAngle + i * arc - Math.PI / 2;
+        const endA   = startA + arc;
+
+        // Segment
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, startA, endA);
+        ctx.closePath();
+        ctx.fillStyle = COLORS[i % COLORS.length];
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Text
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(startA + arc / 2);
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.max(10, Math.min(16, size * 0.04))}px Inter, sans-serif`;
+        ctx.shadowColor = 'rgba(0,0,0,0.4)';
+        ctx.shadowBlur = 4;
+
+        const maxLen = Math.max(6, Math.floor(32 / n));
+        const label  = items[i].length > maxLen
+          ? items[i].slice(0, maxLen - 1) + '…'
+          : items[i];
+        ctx.fillText(label, r - 12, 0);
+        ctx.restore();
+      }
+
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 0.08, 0, 2 * Math.PI);
+      ctx.fillStyle = '#0f0f13';
+      ctx.fill();
+    }
+
+    function easeOut(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function spin() {
+      if (isSpinning || items.length < 2) return;
+      isSpinning = true;
+      spinBtn.disabled = true;
+      resultEl.textContent = '…';
+
+      const n         = items.length;
+      const arc       = (2 * Math.PI) / n;
+      const winIndex  = Math.floor(Math.random() * n);
+
+      // Extra rotations: 4-6 full spins
+      const extraSpins = (4 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+      // The top of the canvas is -π/2, we want winIndex segment centered there.
+      // Segment i starts at: currentAngle + i*arc - π/2
+      // We want the midpoint of winIndex segment to land at top (angle 0 from pointer = -π/2 in canvas)
+      const winMid  = winIndex * arc + arc / 2;
+      const needed  = (2 * Math.PI - winMid) % (2 * Math.PI);
+      const delta   = extraSpins + needed;
+
+      startAngle    = currentAngle;
+      targetAngle   = currentAngle + delta;
+      animDuration  = 3000 + Math.random() * 1000;
+      animStart     = null;
+
+      requestAnimationFrame(animate);
+    }
+
+    function animate(ts) {
+      if (!animStart) animStart = ts;
+      const elapsed = ts - animStart;
+      const t       = Math.min(elapsed / animDuration, 1);
+      const eased   = easeOut(t);
+
+      currentAngle = startAngle + (targetAngle - startAngle) * eased;
+      drawWheel();
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        currentAngle = targetAngle % (2 * Math.PI);
+        drawWheel();
+        isSpinning   = false;
+        spinBtn.disabled = false;
+
+        // Determine winner: pointer is at top (-π/2 offset from currentAngle)
+        // Segment i occupies [currentAngle + i*arc - π/2, currentAngle + (i+1)*arc - π/2]
+        // Which segment contains angle 0 (top pointer)?
+        // Equivalently: which i gives (0 - (currentAngle - π/2)) / arc within [0, 1)?
+        const arc   = (2 * Math.PI) / items.length;
+        const offset = ((Math.PI / 2 - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+        const winner = Math.floor(offset / arc) % items.length;
+
+        resultEl.classList.remove('animate-reveal');
+        void resultEl.offsetWidth;
+        resultEl.classList.add('animate-reveal');
+        resultEl.textContent = items[winner];
+      }
+    }
+
+    function updateWheel() {
+      items = getItems();
+      currentAngle = 0;
+      drawWheel();
+      resultEl.textContent = '—';
+    }
+
+    spinBtn.addEventListener('click', spin);
+    updateBtn.addEventListener('click', updateWheel);
+
+    window.addEventListener('resize', () => {
+      if (!isSpinning) drawWheel();
+    });
+
+    updateWheel();
+  </script>
+
+</body>
+</html>
