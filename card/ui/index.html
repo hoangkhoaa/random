@@ -140,61 +140,77 @@
 
     .deck-info { font-size: var(--font-size-sm); color: var(--color-text-muted); text-align: center; }
 
-    /* ---- Options card ---- */
-    .options-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-5) var(--space-6);
+    /* ---- Settings bar ---- */
+    .settings-bar {
       width: 100%;
       max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: var(--space-4);
+      gap: var(--space-3);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--color-border);
     }
 
-    .options-label {
-      font-size: var(--font-size-xs);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--color-text-muted);
-      margin-bottom: var(--space-1);
-    }
-
-    .options-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-3) var(--space-6);
-    }
-
-    .opt-row {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      font-size: var(--font-size-sm);
-    }
-
-    .opt-row label { color: var(--color-text-muted); white-space: nowrap; }
-
-    .hand-size-row {
+    .settings-row {
       display: flex;
       align-items: center;
       gap: var(--space-3);
     }
-    .hand-size-row input[type="range"] { flex: 1; }
-    .hand-size-row span {
-      font-size: var(--font-size-sm);
+
+    .set-label {
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      min-width: 64px;
+    }
+
+    .set-label b {
       color: var(--color-accent);
-      font-weight: 700;
-      width: 24px;
-      text-align: center;
+      font-size: var(--font-size-sm);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .settings-row input[type="range"] { flex: 1; }
+
+    .settings-chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      padding: var(--space-1) var(--space-3);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      user-select: none;
+    }
+
+    .chip:hover {
+      border-color: var(--color-accent);
+      color: var(--color-text);
+    }
+
+    .chip input[type="checkbox"] {
+      width: 13px;
+      height: 13px;
     }
 
     .options-note {
       font-size: var(--font-size-xs);
       color: var(--color-text-muted);
-      border-top: 1px solid var(--color-border);
-      padding-top: var(--space-3);
+      display: none;
     }
   </style>
 </head>
@@ -226,47 +242,34 @@
       <button id="resetBtn" class="btn btn-ghost btn-large">New Deck</button>
     </div>
 
-    <!-- Options -->
-    <div class="options-card animate-reveal">
+    <!-- Settings -->
+    <div class="settings-bar animate-reveal">
 
-      <div>
-        <div class="options-label">Hand size (max cards)</div>
-        <div class="hand-size-row" style="margin-top:var(--space-2);">
-          <input type="range" id="handSizeSlider" min="1" max="10" value="5">
-          <span id="handSizeVal">5</span>
-        </div>
+      <div class="settings-row">
+        <label class="set-label" for="handSizeSlider">Hand&nbsp;<b id="handSizeVal" aria-live="polite">5</b></label>
+        <input type="range" id="handSizeSlider" min="1" max="10" value="5" aria-label="Hand size">
       </div>
 
-      <div>
-        <div class="options-label">Deck options</div>
-        <div class="options-grid" style="margin-top:var(--space-3);">
-
-          <div class="opt-row">
-            <label>Decks:</label>
-            <select id="deckCount" style="width:72px;">
-              <option value="1" selected>1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-          </div>
-
-          <label class="opt-row" style="cursor:pointer;">
-            <input type="checkbox" id="chkJokers" checked>
-            <span>Include Jokers</span>
-          </label>
-
-          <label class="opt-row" style="cursor:pointer;">
-            <input type="checkbox" id="chkReveal">
-            <span>Face-down draw</span>
-          </label>
-
-          <label class="opt-row" style="cursor:pointer;">
-            <input type="checkbox" id="chkTrack" checked>
-            <span>Track drawn cards</span>
-          </label>
-
-        </div>
+      <div class="settings-row settings-chips">
+        <span class="set-label">Decks</span>
+        <select id="deckCount">
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+        <label class="chip">
+          <input type="checkbox" id="chkJokers" checked>
+          Jokers
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="chkReveal">
+          Face-down
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="chkTrack" checked>
+          Track drawn
+        </label>
       </div>
 
       <div class="options-note" id="optionsNote"></div>
@@ -294,7 +297,6 @@
     let deck         = [];
     let hand         = [];
     let drawnLog     = []; // tracks all cards drawn from current deck build
-    let mode         = 'draw'; // 'draw' | 'newhand'
     let faceDownCard = null;   // pending face-down card to flip
 
     // Options
@@ -348,7 +350,6 @@
       hand        = [];
       drawnLog    = [];
       faceDownCard = null;
-      mode        = 'draw';
       renderHand();
       setLastDrawn('', '');
       updateUI();
@@ -456,19 +457,12 @@
       updateOptionsNote();
 
       if (deck.length === 0 && !faceDownCard) {
-        mode = 'draw';
         drawBtn.textContent = 'Deck empty';
         drawBtn.disabled = true;
       } else if (faceDownCard) {
-        mode = 'flip';
         drawBtn.textContent = 'Flip Card';
         drawBtn.disabled = false;
-      } else if (hand.length >= maxHand) {
-        mode = 'newhand';
-        drawBtn.textContent = 'Clear Hand';
-        drawBtn.disabled = false;
       } else {
-        mode = 'draw';
         drawBtn.textContent = 'Draw Card';
         drawBtn.disabled = false;
       }
@@ -483,16 +477,8 @@
     }
 
     /* ---- Draw logic ---- */
-    // Single click handler — mode decides what happens
     drawBtn.addEventListener('click', () => {
-      if (mode === 'newhand') {
-        hand        = [];
-        faceDownCard = null;
-        mode        = 'draw';
-        renderHand();
-        setLastDrawn('', '');
-        updateUI();
-      } else if (mode === 'flip') {
+      if (faceDownCard) {
         revealCard();
       } else {
         drawCard();
@@ -501,6 +487,11 @@
 
     function drawCard() {
       if (deck.length === 0) return;
+
+      // Auto-clear hand when it reaches maxHand so the display never goes blank unexpectedly
+      if (hand.length >= maxHand) {
+        hand = [];
+      }
 
       const card = deck.pop();
       if (trackDrawn) drawnLog.push(card);
