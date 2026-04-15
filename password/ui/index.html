@@ -10,7 +10,7 @@
       background: var(--color-surface-2);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      padding: var(--space-4) var(--space-6);
+      padding: var(--space-6);
       font-family: 'Courier New', Courier, monospace;
       font-size: clamp(1rem, 3vw, 1.4rem);
       word-break: break-all;
@@ -18,7 +18,7 @@
       text-align: center;
       width: 100%;
       max-width: 500px;
-      min-height: 80px;
+      min-height: 96px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -41,7 +41,15 @@
       max-width: 500px;
       display: flex;
       flex-direction: column;
-      gap: var(--space-4);
+      gap: var(--space-5);
+    }
+
+    .options-section-label {
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-1);
     }
 
     .length-row {
@@ -50,24 +58,18 @@
       gap: var(--space-3);
     }
 
-    .length-row label {
-      font-size: var(--font-size-sm);
-      color: var(--color-text-muted);
-      width: 56px;
-      flex-shrink: 0;
-    }
-
     .length-row input[type="range"] { flex: 1; }
 
     .length-row input[type="number"] {
       width: 64px;
       text-align: center;
+      flex-shrink: 0;
     }
 
     .checkboxes {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: var(--space-2) var(--space-4);
+      gap: var(--space-3) var(--space-6);
     }
 
     .checkbox-row {
@@ -77,6 +79,49 @@
       font-size: var(--font-size-sm);
       cursor: pointer;
       user-select: none;
+    }
+
+    /* Seed input section */
+    .seed-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .seed-hint {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+
+    .seed-input-wrap {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .seed-input-wrap input[type="text"] {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+    }
+
+    .seed-badge {
+      font-size: var(--font-size-xs);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .seed-badge.seeded {
+      background: rgba(124, 106, 247, 0.15);
+      color: var(--color-accent);
+      border: 1px solid var(--color-accent);
+    }
+
+    .seed-badge.random {
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
     }
 
     /* Strength meter */
@@ -106,16 +151,40 @@
       letter-spacing: 0.05em;
     }
 
-    /* Action buttons */
+    /* Action buttons — separated clearly from options */
     .action-row {
       display: flex;
       gap: var(--space-3);
       width: 100%;
       max-width: 500px;
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--color-border);
+      margin-top: var(--space-2);
     }
 
     .action-row .btn {
       flex: 1;
+    }
+
+    /* legend labels inside card */
+    .legend {
+      display: flex;
+      gap: var(--space-4);
+      font-size: var(--font-size-xs);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
     }
   </style>
 </head>
@@ -124,7 +193,7 @@
   <div id="nav-placeholder" data-tool="password" data-mode="ui"></div>
   <script src="../../shared/nav.js"></script>
 
-  <main class="page" style="gap:var(--space-5);">
+  <main class="page" style="gap:var(--space-6);">
 
     <div class="tool-header animate-reveal">
       <h1>🔑 Password Generator</h1>
@@ -132,6 +201,26 @@
 
     <!-- Password display -->
     <div class="password-display animate-reveal" id="passwordDisplay" aria-live="polite">—</div>
+
+    <!-- Color legend -->
+    <div class="legend animate-reveal">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--color-text)"></div>
+        <span style="color:var(--color-text-muted)">lower</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--color-accent)"></div>
+        <span style="color:var(--color-text-muted)">UPPER</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--color-accent-2)"></div>
+        <span style="color:var(--color-text-muted)">digits</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--color-success)"></div>
+        <span style="color:var(--color-text-muted)">symbols</span>
+      </div>
+    </div>
 
     <!-- Strength meter -->
     <div class="strength-wrap animate-reveal">
@@ -145,36 +234,57 @@
       <div class="strength-label" id="strengthLabel" style="color:var(--color-text-muted)">—</div>
     </div>
 
-    <!-- Action buttons -->
-    <div class="action-row animate-reveal">
-      <button id="genBtn"  class="btn btn-primary">Generate</button>
-      <button id="copyBtn" class="btn btn-ghost">Copy</button>
-    </div>
-
-    <!-- Options -->
+    <!-- Options card -->
     <div class="options-card animate-reveal">
+
       <!-- Length -->
-      <div class="length-row">
-        <label for="lengthSlider">Length</label>
-        <input type="range" id="lengthSlider" min="8" max="64" value="16">
-        <input type="number" id="lengthNum" min="8" max="64" value="16">
+      <div>
+        <div class="options-section-label">Length</div>
+        <div class="length-row" style="margin-top:var(--space-2);">
+          <input type="range" id="lengthSlider" min="8" max="64" value="16">
+          <input type="number" id="lengthNum" min="8" max="64" value="16">
+        </div>
       </div>
 
       <!-- Character sets -->
-      <div class="checkboxes">
-        <label class="checkbox-row">
-          <input type="checkbox" id="chkUpper"   checked> Uppercase
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" id="chkLower"   checked> Lowercase
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" id="chkDigits"  checked> Numbers
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" id="chkSymbols" checked> Symbols
-        </label>
+      <div>
+        <div class="options-section-label">Character sets</div>
+        <div class="checkboxes" style="margin-top:var(--space-3);">
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkUpper"   checked> Uppercase A–Z
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkLower"   checked> Lowercase a–z
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkDigits"  checked> Numbers 0–9
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="chkSymbols" checked> Symbols !@#…
+          </label>
+        </div>
       </div>
+
+      <!-- Seed string -->
+      <div class="seed-row">
+        <div class="options-section-label">Seed string
+          <span style="text-transform:none;letter-spacing:0;font-weight:400;margin-left:4px;">
+            — same seed always gives same password
+          </span>
+        </div>
+        <div class="seed-input-wrap">
+          <input type="text" id="seedInput" placeholder="Leave empty for truly random…" autocomplete="off" spellcheck="false">
+          <span class="seed-badge random" id="seedBadge">random</span>
+        </div>
+        <span class="seed-hint" id="seedHint"></span>
+      </div>
+
+      <!-- Actions — inside card, clearly separated -->
+      <div class="action-row">
+        <button id="genBtn"  class="btn btn-primary">Generate</button>
+        <button id="copyBtn" class="btn btn-ghost">Copy</button>
+      </div>
+
     </div>
 
   </main>
@@ -185,45 +295,74 @@
     const DIGITS  = '23456789';
     const SYMBOLS = '!@#$%^&*-_=+?';
 
-    const displayEl  = document.getElementById('passwordDisplay');
+    const displayEl    = document.getElementById('passwordDisplay');
     const lengthSlider = document.getElementById('lengthSlider');
     const lengthNum    = document.getElementById('lengthNum');
-    const chkUpper    = document.getElementById('chkUpper');
-    const chkLower    = document.getElementById('chkLower');
-    const chkDigits   = document.getElementById('chkDigits');
-    const chkSymbols  = document.getElementById('chkSymbols');
-    const genBtn      = document.getElementById('genBtn');
-    const copyBtn     = document.getElementById('copyBtn');
+    const chkUpper     = document.getElementById('chkUpper');
+    const chkLower     = document.getElementById('chkLower');
+    const chkDigits    = document.getElementById('chkDigits');
+    const chkSymbols   = document.getElementById('chkSymbols');
+    const genBtn       = document.getElementById('genBtn');
+    const copyBtn      = document.getElementById('copyBtn');
+    const seedInput    = document.getElementById('seedInput');
+    const seedBadge    = document.getElementById('seedBadge');
+    const seedHint     = document.getElementById('seedHint');
     const strengthLabel = document.getElementById('strengthLabel');
     const segs = [0,1,2,3,4].map(i => document.getElementById('seg'+i));
 
     let currentPassword = '';
     let debounceTimer;
 
-    function randomIndex(max) {
+    /* ---- Seeded PRNG (mulberry32) ---- */
+    function hashStr(str) {
+      // djb2-style hash → 32-bit int seed
+      let h = 5381;
+      for (let i = 0; i < str.length; i++) {
+        h = (Math.imul(h, 33) ^ str.charCodeAt(i)) >>> 0;
+      }
+      return h;
+    }
+
+    function makePRNG(seed) {
+      // mulberry32 — fast, high quality
+      let s = seed >>> 0;
+      return function () {
+        s = (s + 0x6D2B79F5) >>> 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    /* ---- Crypto random (for empty seed) ---- */
+    function cryptoRand() {
       const arr = new Uint32Array(1);
       crypto.getRandomValues(arr);
-      return arr[0] % max;
+      return arr[0] / 4294967296;
     }
 
     function getPool() {
       let pool = '';
-      // Always include lowercase as base to avoid empty pool
       if (chkLower.checked)   pool += LOWER;
       if (chkUpper.checked)   pool += UPPER;
       if (chkDigits.checked)  pool += DIGITS;
       if (chkSymbols.checked) pool += SYMBOLS;
-      return pool || LOWER; // fallback
+      return pool || LOWER;
     }
 
     function generate() {
-      const len  = parseInt(lengthSlider.value, 10);
-      const pool = getPool();
-      const chars = Array.from({ length: len }, () => pool[randomIndex(pool.length)]);
+      const len   = parseInt(lengthSlider.value, 10);
+      const pool  = getPool();
+      const seed  = seedInput.value.trim();
+      const rand  = seed ? makePRNG(hashStr(seed + '|' + len + '|' + pool)) : cryptoRand;
 
-      // Fisher-Yates shuffle
+      const pickIdx = max => Math.floor(rand() * max);
+
+      const chars = Array.from({ length: len }, () => pool[pickIdx(pool.length)]);
+
+      // Fisher-Yates shuffle with same RNG
       for (let i = chars.length - 1; i > 0; i--) {
-        const j = randomIndex(i + 1);
+        const j = Math.floor(rand() * (i + 1));
         [chars[i], chars[j]] = [chars[j], chars[i]];
       }
 
@@ -257,27 +396,16 @@
     }
 
     function renderStrength(len) {
-      let typeCount = 0;
-      if (chkUpper.checked)   typeCount++;
-      if (chkLower.checked)   typeCount++;
-      if (chkDigits.checked)  typeCount++;
-      if (chkSymbols.checked) typeCount++;
-
+      let typeCount = [chkUpper, chkLower, chkDigits, chkSymbols].filter(c => c.checked).length;
       let level;
-      if (len < 8)                              level = 0; // Weak
-      else if (len < 12)                        level = 1; // Fair
-      else if (len < 16 || typeCount < 2)       level = 2; // Good
-      else if (len < 20 || typeCount < 3)       level = 3; // Strong
-      else                                      level = 4; // Excellent
+      if (len < 8)                        level = 0;
+      else if (len < 12)                  level = 1;
+      else if (len < 16 || typeCount < 2) level = 2;
+      else if (len < 20 || typeCount < 3) level = 3;
+      else                                level = 4;
 
-      const colors = [
-        'var(--color-danger)',
-        'var(--color-warning)',
-        '#a8f76a',
-        'var(--color-success)',
-        '#6af7e0',
-      ];
-      const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Excellent'];
+      const colors = ['var(--color-danger)','var(--color-warning)','#a8f76a','var(--color-success)','#6af7e0'];
+      const labels = ['Weak','Fair','Good','Strong','Excellent'];
 
       segs.forEach((s, i) => {
         s.style.background = i <= level ? colors[level] : 'var(--color-surface-2)';
@@ -286,25 +414,42 @@
       strengthLabel.style.color = colors[level];
     }
 
-    // Sync length slider & number input
+    function updateSeedUI() {
+      const seed = seedInput.value.trim();
+      if (seed) {
+        seedBadge.textContent = 'seeded';
+        seedBadge.className = 'seed-badge seeded';
+        seedHint.textContent = `Seed hash: ${hashStr(seed).toString(16).padStart(8,'0')}`;
+      } else {
+        seedBadge.textContent = 'random';
+        seedBadge.className = 'seed-badge random';
+        seedHint.textContent = '';
+      }
+    }
+
+    /* ---- Sync controls ---- */
     lengthSlider.addEventListener('input', () => {
       lengthNum.value = lengthSlider.value;
       scheduleGenerate();
     });
     lengthNum.addEventListener('change', () => {
       const v = Math.min(64, Math.max(8, parseInt(lengthNum.value, 10) || 16));
-      lengthNum.value   = v;
+      lengthNum.value    = v;
       lengthSlider.value = v;
       scheduleGenerate();
     });
 
-    // Ensure at least one charset
     [chkUpper, chkLower, chkDigits, chkSymbols].forEach(chk => {
       chk.addEventListener('change', () => {
         const any = chkUpper.checked || chkLower.checked || chkDigits.checked || chkSymbols.checked;
-        if (!any) chk.checked = true; // prevent unchecking all
+        if (!any) chk.checked = true;
         scheduleGenerate();
       });
+    });
+
+    seedInput.addEventListener('input', () => {
+      updateSeedUI();
+      scheduleGenerate();
     });
 
     function scheduleGenerate() {
@@ -327,7 +472,6 @@
           copyBtn.style.color = '';
         }, 1500);
       } catch {
-        // Fallback: select the text
         const tmp = document.createElement('textarea');
         tmp.value = currentPassword;
         document.body.appendChild(tmp);

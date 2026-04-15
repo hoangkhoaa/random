@@ -6,12 +6,12 @@
   <title>Card Draw — random</title>
   <link rel="stylesheet" href="../../shared/style.css">
   <style>
-    /* ---- Playing Card ---- */
+    /* ---- Playing Card base ---- */
     .card-hand {
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      min-height: 180px;
+      min-height: 185px;
       padding: var(--space-4) 40px;
       position: relative;
     }
@@ -19,19 +19,16 @@
     .playing-card {
       width: 100px;
       height: 140px;
-      background: #f8f8fa;
+      background: #f0eff5;
       border-radius: 10px;
-      border: 1px solid #ddd;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
       position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
+      overflow: hidden;
       flex-shrink: 0;
       transition: transform 0.2s;
       cursor: default;
+      user-select: none;
     }
 
     .playing-card:not(:first-child) {
@@ -39,7 +36,7 @@
     }
 
     .playing-card:hover {
-      transform: translateY(-8px);
+      transform: translateY(-10px);
       z-index: 10;
     }
 
@@ -48,49 +45,127 @@
     }
 
     @keyframes card-enter {
-      from { opacity: 0; transform: translateY(-30px) scale(0.9); }
+      from { opacity: 0; transform: translateY(-30px) scale(0.88); }
       to   { opacity: 1; transform: translateY(0)    scale(1); }
     }
 
+    /* Corners */
     .card-corner {
       position: absolute;
       display: flex;
       flex-direction: column;
       align-items: center;
-      line-height: 1.1;
-      font-size: 0.75rem;
+      line-height: 1.15;
     }
 
     .card-corner.top-left {
-      top: 6px;
-      left: 7px;
+      top: 5px;
+      left: 6px;
     }
 
     .card-corner.bottom-right {
-      bottom: 6px;
-      right: 7px;
+      bottom: 5px;
+      right: 6px;
       transform: rotate(180deg);
     }
 
     .card-rank {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 900;
+      line-height: 1;
     }
 
-    .card-center {
+    .card-suit-corner {
+      font-size: 0.65rem;
+      line-height: 1;
+    }
+
+    /* ---- Number cards: pip flex center ---- */
+    .card-pips {
+      position: absolute;
+      inset: 22px 10px 22px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: space-around;
+      justify-content: space-around;
+      gap: 1px;
+    }
+
+    .pip-sym {
+      font-size: 0.72rem;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    /* ---- Face cards: themed art box ---- */
+    .card-face-art {
+      position: absolute;
+      inset: 22px 8px 22px 8px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .face-icon {
       font-size: 2rem;
       line-height: 1;
     }
 
-    .playing-card.red {
-      color: #dc2626;
+    .face-title {
+      font-size: 0.45rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 900;
+      opacity: 0.75;
+      margin-top: 1px;
     }
 
-    .playing-card.black {
-      color: #111;
+    /* Ace: large centered suit */
+    .card-ace-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      line-height: 1;
     }
 
-    /* Placeholder when no cards */
+    /* Color classes */
+    .playing-card.red  { color: #c41a1a; }
+    .playing-card.black{ color: #1a1a1a; }
+
+    /* Face card bg tint matching theme */
+    .playing-card.red .card-face-art {
+      background: linear-gradient(160deg, rgba(220,60,60,0.08) 0%, rgba(220,60,60,0.02) 100%);
+      border: 1px solid rgba(220,60,60,0.18);
+    }
+
+    .playing-card.black .card-face-art {
+      background: linear-gradient(160deg, rgba(80,80,120,0.10) 0%, rgba(80,80,120,0.02) 100%);
+      border: 1px solid rgba(80,80,120,0.18);
+    }
+
+    /* ---- Joker card ---- */
+    .playing-card.joker {
+      background: linear-gradient(145deg, #1a1a2e, #252545);
+      color: #e8d860;
+      border-color: #4a4a7a;
+    }
+
+    .playing-card.joker .card-rank { color: #e8d860; }
+    .playing-card.joker .card-face-art {
+      background: rgba(232,216,96,0.06);
+      border: 1px solid rgba(232,216,96,0.2);
+    }
+
+    /* Placeholder */
     .no-cards {
       color: var(--color-text-muted);
       font-size: var(--font-size-sm);
@@ -99,7 +174,6 @@
       padding: var(--space-8);
     }
 
-    /* Remaining count */
     .deck-info {
       font-size: var(--font-size-sm);
       color: var(--color-text-muted);
@@ -116,7 +190,7 @@
 
     <div class="tool-header animate-reveal">
       <h1>🃏 Card Draw</h1>
-      <p id="deckInfo" class="deck-info">52 cards remaining</p>
+      <p id="deckInfo" class="deck-info">54 cards remaining</p>
     </div>
 
     <!-- Hand display -->
@@ -126,7 +200,7 @@
 
     <!-- Last drawn -->
     <div class="result-display animate-reveal" id="lastDrawn"
-         style="font-size:clamp(1.2rem,4vw,2rem);text-align:center;min-height:2rem;"
+         style="font-size:clamp(1.1rem,4vw,1.8rem);text-align:center;min-height:2rem;"
          aria-live="polite"></div>
 
     <!-- Buttons -->
@@ -138,23 +212,39 @@
   </main>
 
   <script>
+    // Full 54-card deck including 2 jokers
     const RANKS  = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    const RANKS_FULL = ['Ace','2','3','4','5','6','7','8','9','10','Jack','Queen','King'];
-    const SUITS  = [
-      { name: 'Spades',   sym: '♠', color: 'black' },
-      { name: 'Hearts',   sym: '♥', color: 'red'   },
-      { name: 'Diamonds', sym: '♦', color: 'red'   },
-      { name: 'Clubs',    sym: '♣', color: 'black' },
+    const RANKS_FULL = {
+      'A':'Ace','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7',
+      '8':'8','9':'9','10':'10','J':'Jack','Q':'Queen','K':'King',
+    };
+    const SUITS = [
+      { name:'Spades',   sym:'♠', color:'black' },
+      { name:'Hearts',   sym:'♥', color:'red'   },
+      { name:'Diamonds', sym:'♦', color:'red'   },
+      { name:'Clubs',    sym:'♣', color:'black' },
     ];
 
-    let deck   = [];
-    let hand   = [];
+    // Number of pips per rank (simple count — flexbox handles spacing)
+    const PIP_COUNTS = {
+      '2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,
+    };
 
-    const handEl     = document.getElementById('cardHand');
-    const drawBtn    = document.getElementById('drawBtn');
-    const resetBtn   = document.getElementById('resetBtn');
-    const lastDrawn  = document.getElementById('lastDrawn');
-    const deckInfo   = document.getElementById('deckInfo');
+    // Face card definitions
+    const FACE_ART = {
+      'J': { icon:'♞', title:'Jack' },
+      'Q': { icon:'♛', title:'Queen' },
+      'K': { icon:'♚', title:'King' },
+    };
+
+    let deck = [];
+    let hand = [];
+
+    const handEl    = document.getElementById('cardHand');
+    const drawBtn   = document.getElementById('drawBtn');
+    const resetBtn  = document.getElementById('resetBtn');
+    const lastDrawn = document.getElementById('lastDrawn');
+    const deckInfo  = document.getElementById('deckInfo');
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -167,14 +257,95 @@
     function newDeck() {
       deck = [];
       for (const suit of SUITS) {
-        for (let r = 0; r < RANKS.length; r++) {
-          deck.push({ rank: RANKS[r], rankFull: RANKS_FULL[r], suit });
+        for (const rank of RANKS) {
+          deck.push({ rank, rankFull: RANKS_FULL[rank], suit, type: 'number' });
         }
       }
+      // Add 2 jokers
+      deck.push({ rank:'★', rankFull:'Joker', suit:{ name:'', sym:'', color:'joker' }, type:'joker', label:'Red Joker' });
+      deck.push({ rank:'★', rankFull:'Joker', suit:{ name:'', sym:'', color:'joker' }, type:'joker', label:'Black Joker' });
       shuffle(deck);
       hand = [];
       renderHand();
       updateUI();
+    }
+
+    function buildCardHTML(card) {
+      const rank = card.rank;
+
+      if (card.type === 'joker') {
+        return `
+          <div class="card-corner top-left">
+            <span class="card-rank" style="color:#e8d860">★</span>
+          </div>
+          <div class="card-face-art">
+            <span class="face-icon">🃏</span>
+            <span class="face-title" style="color:#e8d860">Joker</span>
+          </div>
+          <div class="card-corner bottom-right">
+            <span class="card-rank" style="color:#e8d860">★</span>
+          </div>
+        `;
+      }
+
+      const sym = card.suit.sym;
+
+      // Ace: large centered suit symbol
+      if (rank === 'A') {
+        return `
+          <div class="card-corner top-left">
+            <span class="card-rank">${rank}</span>
+            <span class="card-suit-corner">${sym}</span>
+          </div>
+          <div class="card-ace-center">${sym}</div>
+          <div class="card-corner bottom-right">
+            <span class="card-rank">${rank}</span>
+            <span class="card-suit-corner">${sym}</span>
+          </div>
+        `;
+      }
+
+      // Face cards: J, Q, K
+      if (FACE_ART[rank]) {
+        const art = FACE_ART[rank];
+        return `
+          <div class="card-corner top-left">
+            <span class="card-rank">${rank}</span>
+            <span class="card-suit-corner">${sym}</span>
+          </div>
+          <div class="card-face-art">
+            <span class="face-icon">${art.icon}</span>
+            <span class="face-title">${art.title}</span>
+            <span style="font-size:0.7rem;margin-top:2px;">${sym}</span>
+          </div>
+          <div class="card-corner bottom-right">
+            <span class="card-rank">${rank}</span>
+            <span class="card-suit-corner">${sym}</span>
+          </div>
+        `;
+      }
+
+      // Number cards: pip flex layout
+      const count = PIP_COUNTS[rank];
+      let pipsHTML = '';
+      if (count) {
+        const pipElems = Array(count).fill(`<span class="pip-sym">${sym}</span>`).join('');
+        pipsHTML = `<div class="card-pips">${pipElems}</div>`;
+      } else {
+        pipsHTML = `<div class="card-ace-center" style="font-size:1.8rem;">${sym}</div>`;
+      }
+
+      return `
+        <div class="card-corner top-left">
+          <span class="card-rank">${rank}</span>
+          <span class="card-suit-corner">${sym}</span>
+        </div>
+        ${pipsHTML}
+        <div class="card-corner bottom-right">
+          <span class="card-rank">${rank}</span>
+          <span class="card-suit-corner">${sym}</span>
+        </div>
+      `;
     }
 
     function renderHand() {
@@ -185,33 +356,23 @@
       handEl.innerHTML = '';
       hand.forEach((card, i) => {
         const el = document.createElement('div');
-        el.className = `playing-card ${card.suit.color}`;
+        el.className = `playing-card ${card.suit.color === 'joker' ? 'joker' : card.suit.color}`;
         if (i === hand.length - 1) el.classList.add('entering');
-        el.innerHTML = `
-          <div class="card-corner top-left">
-            <span class="card-rank">${card.rank}</span>
-            <span>${card.suit.sym}</span>
-          </div>
-          <div class="card-center">${card.suit.sym}</div>
-          <div class="card-corner bottom-right">
-            <span class="card-rank">${card.rank}</span>
-            <span>${card.suit.sym}</span>
-          </div>
-        `;
+        el.style.zIndex = i;
+        el.innerHTML = buildCardHTML(card);
         handEl.appendChild(el);
       });
     }
 
     function updateUI() {
       deckInfo.textContent = `${deck.length} card${deck.length !== 1 ? 's' : ''} remaining`;
-      const maxHand = 5;
       if (deck.length === 0) {
         drawBtn.textContent = 'Deck empty!';
         drawBtn.disabled = true;
-      } else if (hand.length >= maxHand) {
-        drawBtn.textContent = 'Hand full — New Deck';
+      } else if (hand.length >= 5) {
+        drawBtn.textContent = 'New Hand';
         drawBtn.disabled = false;
-        drawBtn.onclick = () => { newDeck(); drawBtn.onclick = draw; };
+        drawBtn.onclick = () => { hand = []; renderHand(); updateUI(); drawBtn.onclick = draw; };
       } else {
         drawBtn.textContent = 'Draw Card';
         drawBtn.disabled = false;
@@ -221,25 +382,31 @@
 
     function draw() {
       if (deck.length === 0) return;
-      if (hand.length >= 5) { newDeck(); return; }
+      if (hand.length >= 5) { hand = []; renderHand(); updateUI(); return; }
 
       const card = deck.pop();
       hand.push(card);
       renderHand();
 
+      const label = card.type === 'joker'
+        ? (card.label || 'Joker')
+        : `${card.rankFull} of ${card.suit.name}`;
+
       lastDrawn.style.color = card.suit.color === 'red'
         ? 'var(--color-danger)'
-        : 'var(--color-text)';
+        : card.suit.color === 'joker'
+          ? '#e8d860'
+          : 'var(--color-text)';
       lastDrawn.classList.remove('animate-reveal');
       void lastDrawn.offsetWidth;
       lastDrawn.classList.add('animate-reveal');
-      lastDrawn.textContent = `${card.rankFull} of ${card.suit.name}`;
+      lastDrawn.textContent = label;
 
       updateUI();
     }
 
     drawBtn.addEventListener('click', draw);
-    resetBtn.addEventListener('click', () => { newDeck(); });
+    resetBtn.addEventListener('click', newDeck);
 
     newDeck();
   </script>
